@@ -1,0 +1,14 @@
+C:\Users\smeghead\Desktop\Alarm 2112 V3\bin\Release\net8.0-windows\AlarmClock2112.exe
+C:\Users\smeghead\Desktop\Alarm 2112 V3\bin\Release\net8.0-windows\AlarmClock2112.deps.json
+C:\Users\smeghead\Desktop\Alarm 2112 V3\bin\Release\net8.0-windows\AlarmClock2112.runtimeconfig.json
+C:\Users\smeghead\Desktop\Alarm 2112 V3\bin\Release\net8.0-windows\AlarmClock2112.dll
+C:\Users\smeghead\Desktop\Alarm 2112 V3\bin\Release\net8.0-windows\AlarmClock2112.pdb
+C:\Users\smeghead\Desktop\Alarm 2112 V3\obj\Release\net8.0-windows\AlarmClock2112.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\smeghead\Desktop\Alarm 2112 V3\obj\Release\net8.0-windows\AlarmClock2112.AssemblyInfoInputs.cache
+C:\Users\smeghead\Desktop\Alarm 2112 V3\obj\Release\net8.0-windows\AlarmClock2112.AssemblyInfo.cs
+C:\Users\smeghead\Desktop\Alarm 2112 V3\obj\Release\net8.0-windows\AlarmClock2112.csproj.CoreCompileInputs.cache
+C:\Users\smeghead\Desktop\Alarm 2112 V3\obj\Release\net8.0-windows\AlarmClock2112.dll
+C:\Users\smeghead\Desktop\Alarm 2112 V3\obj\Release\net8.0-windows\refint\AlarmClock2112.dll
+C:\Users\smeghead\Desktop\Alarm 2112 V3\obj\Release\net8.0-windows\AlarmClock2112.pdb
+C:\Users\smeghead\Desktop\Alarm 2112 V3\obj\Release\net8.0-windows\AlarmClock2112.genruntimeconfig.cache
+C:\Users\smeghead\Desktop\Alarm 2112 V3\obj\Release\net8.0-windows\ref\AlarmClock2112.dll
