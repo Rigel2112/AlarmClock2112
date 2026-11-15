@@ -29,6 +29,7 @@ public sealed class SettingsData
     public int ClockColorArgb { get; set; } = Color.FromArgb(105, 214, 255).ToArgb();
     public bool Use24Hour { get; set; } = false;
     public bool ShowSeconds { get; set; } = true;
+    public bool HideLeadingZero { get; set; } = false;
     public bool MinimizeToTray { get; set; } = false;
     public bool AlwaysOnTop { get; set; } = false;
     public bool HideTitleBar { get; set; } = false;
@@ -51,6 +52,7 @@ public sealed class MainForm : Form
     private NumericUpDown fontSizePicker = new() { Minimum = 8, Maximum = 500, Increment = 2, Width = 72 };
     private CheckBox format24 = new() { Text = "24-hour time", AutoSize = true };
     private CheckBox showSeconds = new() { Text = "Show seconds", AutoSize = true };
+    private CheckBox hideLeadingZero = new() { Text = "Hide leading zero", AutoSize = true };
     private CheckBox trayOption = new() { Text = "Minimize to tray", AutoSize = true };
     private CheckBox ntpOption = new() { Text = "Use internet time (NTP)", AutoSize = true };
     private CheckBox topOption = new() { Text = "Always on top", AutoSize = true };
@@ -156,6 +158,7 @@ public sealed class MainForm : Form
         fontSizePicker = new NumericUpDown { Minimum = 8, Maximum = 500, Increment = 2, Width = 72 };
         format24 = new CheckBox { Text = "24-hour time", AutoSize = true };
         showSeconds = new CheckBox { Text = "Show seconds", AutoSize = true };
+        hideLeadingZero = new CheckBox { Text = "Hide leading zero", AutoSize = true };
         trayOption = new CheckBox { Text = "Minimize to tray", AutoSize = true };
         ntpOption = new CheckBox { Text = "Use internet time (NTP)", AutoSize = true };
         topOption = new CheckBox { Text = "Always on top", AutoSize = true };
@@ -163,15 +166,14 @@ public sealed class MainForm : Form
         using var dialog = new Form
         {
             Text = "AlarmClock 2112 — Settings", StartPosition = FormStartPosition.CenterParent,
-            Size = new Size(840, 570), MinimumSize = new Size(680, 450),
+            Size = new Size(900, 600), MinimumSize = new Size(720, 470),
             BackColor = BackColor, ForeColor = ForeColor
         };
-        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16), ColumnCount = 1, RowCount = 5 };
+        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(16), ColumnCount = 1, RowCount = 4 };
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 54));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 106));
         dialog.Controls.Add(layout);
         var top = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, AutoScroll = true };
         top.Controls.Add(new Label { Text = "Clock font:", AutoSize = true, Margin = new Padding(0, 9, 8, 0) });
@@ -204,14 +206,6 @@ public sealed class MainForm : Form
         colorButton.ForeColor = colorButton.BackColor.GetBrightness() > 0.55f ? Color.Black : Color.White;
         colorButton.Margin = new Padding(12, 2, 0, 0);
         top.Controls.Add(colorButton);
-        format24.Checked = settings.Use24Hour;
-        format24.Margin = new Padding(14, 8, 0, 0);
-        format24.CheckedChanged += (_, _) => { settings.Use24Hour = format24.Checked; UpdateClockFont(); SaveSettings(); RefreshAlarms(); };
-        top.Controls.Add(format24);
-        showSeconds.Checked = settings.ShowSeconds;
-        showSeconds.Margin = new Padding(12, 8, 0, 0);
-        showSeconds.CheckedChanged += (_, _) => { settings.ShowSeconds = showSeconds.Checked; Tick(); UpdateClockFont(); SaveSettings(); };
-        top.Controls.Add(showSeconds);
         layout.Controls.Add(top, 0, 0);
         alarmList.Dock = DockStyle.Fill;
         alarmList.View = View.Details;
@@ -235,22 +229,29 @@ public sealed class MainForm : Form
         actions.Controls.Add(MakeButton("Delete", (_, _) => DeleteSelected()));
         actions.Controls.Add(MakeButton("Enable / Disable", (_, _) => ToggleSelected()));
         layout.Controls.Add(actions, 0, 2);
-        var bottom = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, AutoScroll = true };
+        // Keep every toggle together at the bottom, with wrapping for smaller windows.
+        var bottom = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = true, AutoScroll = true, Padding = new Padding(0, 4, 0, 0) };
+        format24.Checked = settings.Use24Hour;
+        format24.CheckedChanged += (_, _) => { settings.Use24Hour = format24.Checked; Tick(); UpdateClockFont(); SaveSettings(); RefreshAlarms(); };
+        bottom.Controls.Add(format24);
+        showSeconds.Checked = settings.ShowSeconds;
+        showSeconds.CheckedChanged += (_, _) => { settings.ShowSeconds = showSeconds.Checked; Tick(); UpdateClockFont(); SaveSettings(); };
+        bottom.Controls.Add(showSeconds);
+        hideLeadingZero.Checked = settings.HideLeadingZero;
+        hideLeadingZero.CheckedChanged += (_, _) => { settings.HideLeadingZero = hideLeadingZero.Checked; Tick(); UpdateClockFont(); SaveSettings(); };
+        bottom.Controls.Add(hideLeadingZero);
         trayOption.Checked = settings.MinimizeToTray;
         trayOption.CheckedChanged += (_, _) => { settings.MinimizeToTray = trayOption.Checked; SaveSettings(); };
         bottom.Controls.Add(trayOption);
+        topOption.Checked = settings.AlwaysOnTop;
+        topOption.CheckedChanged += (_, _) => { settings.AlwaysOnTop = topOption.Checked; ApplyWindowOptions(); SaveSettings(); };
+        bottom.Controls.Add(topOption);
+        borderOption.Checked = settings.HideTitleBar;
+        borderOption.CheckedChanged += (_, _) => { settings.HideTitleBar = borderOption.Checked; ApplyWindowOptions(); SaveSettings(); };
+        bottom.Controls.Add(borderOption);
         ntpOption.Checked = settings.UseInternetTime;
-        ntpOption.Margin = new Padding(14, 3, 0, 0);
         ntpOption.CheckedChanged += (_, _) => { settings.UseInternetTime = ntpOption.Checked; SaveSettings(); if (ntpOption.Checked) _ = SynchronizeClockAsync(); else { ntpOffset = TimeSpan.Zero; SetNtpStatus("System time"); } };
         bottom.Controls.Add(ntpOption);
-        topOption.Checked = settings.AlwaysOnTop;
-        borderOption.Checked = settings.HideTitleBar;
-        topOption.CheckedChanged += (_, _) => { settings.AlwaysOnTop = topOption.Checked; ApplyWindowOptions(); SaveSettings(); };
-        borderOption.CheckedChanged += (_, _) => { settings.HideTitleBar = borderOption.Checked; ApplyWindowOptions(); SaveSettings(); };
-        var windowOptions = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, AutoScroll = true };
-        windowOptions.Controls.Add(topOption);
-        windowOptions.Controls.Add(borderOption);
-        layout.Controls.Add(windowOptions, 0, 4);
         bottom.Controls.Add(MakeButton("Sync now", (_, _) => _ = SynchronizeClockAsync()));
         status.AutoSize = true;
         status.Margin = new Padding(12, 10, 0, 0);
@@ -302,7 +303,7 @@ public sealed class MainForm : Form
         using var graphics = CreateGraphics();
         string sample = settings.Use24Hour
             ? (settings.ShowSeconds ? "23:59:59" : "23:59")
-            : (settings.ShowSeconds ? "12:59:59 PM" : "12:59 PM");
+            : (settings.ShowSeconds ? (settings.HideLeadingZero ? "9:59:59 PM" : "12:59:59 PM") : (settings.HideLeadingZero ? "9:59 PM" : "12:59 PM"));
         SizeF measured = graphics.MeasureString(sample, measurementFont,
             int.MaxValue, StringFormat.GenericTypographic);
         // WinForms Label uses GDI TextRenderer, which can require more room than
@@ -336,7 +337,7 @@ public sealed class MainForm : Form
         var now = Now;
         clock.Text = now.ToString(settings.Use24Hour
             ? (settings.ShowSeconds ? "HH:mm:ss" : "HH:mm")
-            : (settings.ShowSeconds ? "hh:mm:ss tt" : "hh:mm tt"));
+            : (settings.ShowSeconds ? (settings.HideLeadingZero ? "h:mm:ss tt" : "hh:mm:ss tt") : (settings.HideLeadingZero ? "h:mm tt" : "hh:mm tt")));
         if (settings.UseInternetTime && DateTime.UtcNow >= nextSyncUtc)
         {
             nextSyncUtc = DateTime.UtcNow.AddMinutes(30);
